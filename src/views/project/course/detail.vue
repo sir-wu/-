@@ -1,10 +1,40 @@
 <template>
 <div>
+  
+    <el-card shadow="never">
+        <div style="display: flex;align-items: flex-start;">
+            <img :src="detail.cover" style="width: 200px;height: 100px;margin-right: 20px;">
+          
+           <div style="flex: 1;">
+               <div  style="display: flex;justify-content: space-between;">
+                   <h4 style="margin-top: 5px;margin-bottom: 0;">{{detail.title}}</h4>
+                   <small style="color: #bbbbbb;">{{ detail.isend ? '已完结' : '连载中' }}</small>
+               </div>
+          
+            <p style="margin: 8px 0;">
+            <small style="color: #bbbbbb;">{{ detail.try }}</small>
+           </p>
+
+           <p>
+         <small style="color: red;">￥{{ detail.price }}</small>
+         </p>
+
+         <el-button-group >
+             <el-button size="small" type="warning" @click="changeDetailStatus">
+                {{ detail.status ? '下架' : '上架' }}
+            </el-button>
+        <el-button size="small" type="default" @click="changeDetailIsend">设为{{ detail.isend ? '连载中' : '已完结' }}</el-button>
+          </el-button-group>
+           </div> 
+        </div>
+
+    </el-card>
+
+
     <div>
-       
   <el-row class="main" :gutter="20">
       <el-col :span="6">
-  <el-button class="button" type="primary" @click="dialogFormVisible = true"> <i class="el-icon-edit"></i>新增音频</el-button>
+  <el-button class="button" type="primary" @click="addCourse" > <i class="el-icon-edit"></i>新增目录</el-button>
 </el-col>
  <el-col :span="12">
   <el-select v-model="value" placeholder="商品状态" class="select">
@@ -25,7 +55,7 @@
  <el-table :data="tableData" style="width: 100%" border v-loading="listLoading">
       <el-table-column sortable prop="id" label="ID" width="100" align="center">
       </el-table-column>
-      <el-table-column  label="音频内容" width="500">
+      <el-table-column  label="单品内容" width="500">
         <template slot-scope="{ row }">
           <div style="display: flex">
             <img
@@ -70,12 +100,12 @@
           <el-button type="primary" size="mini"  @click="handleUpdate(row)">
             编辑
           </el-button>
-          <el-button v-if="row.status == 0" size="mini" type="success" @click="handleModifyStatus(row,1)">
+          <!-- <el-button v-if="row.status == 0" size="mini" type="success" @click="handleModifyStatus(row,1)">
             上架
           </el-button>
           <el-button v-else-if="row.status == 1" size="mini" @click="handleModifyStatus(row,0)">
             下架
-          </el-button>
+          </el-button> -->
           <el-popconfirm title="是否要删除该记录？" @onConfirm="handleDelete(row,$index)" style="margin-left:10px;">
                <el-button v-if="row.status!='deleted'" size="mini" type="danger" slot="reference">删除</el-button>
            </el-popconfirm>
@@ -99,98 +129,33 @@
         </div>
 
 
-    <!-- 增加商品区域 -->
+    <!-- 增加目录区域 -->
 
-   
-    <el-dialog title="新增"  :visible.sync="dialogFormVisible" fullscreen>
-  <el-form :model="temp" :rules="rules" ref="dataForm">
-    <el-form-item label="标题" prop="title" :label-width="formLabelWidth" style="width:500px">
-      <el-input v-model="temp.title" autocomplete="off"></el-input>
-    </el-form-item>
-
-<!-- 图片上传 -->
-<el-form-item label="封面"style="margin-left:76px" >
-    <el-upload
-  action="https://jsonplaceholder.typicode.com/posts/"
-  list-type="picture-card"
-  :on-preview="handlePictureCardPreview"
-  :on-remove="handleRemove"
-  style="margin-left:50px"
-  v-model="temp.fengmian"
-  >
-  <i class="el-icon-plus"></i>
-</el-upload>
-<el-dialog :visible.sync="dialogVisible">
-  <img width="100%" :src="dialogImageUrl" alt="">
-</el-dialog>
-</el-form-item>
-
-
-
-<!-- 富文本 -->
-<el-form-item   prop="try" label="课程介绍"style="margin-left:76px" >
-<div class="components-container" style="width:50%">
-    <div>
-      <tinymce v-model="temp.try" :height="300" />
-    </div>
-    <div class="editor-content" v-html="temp.trysee" />
-  </div>
-</el-form-item>
-
-<el-form-item   prop="try" label="课程内容"style="margin-left:76px" >
-<el-upload
-  class="upload-demo"
-  action="https://jsonplaceholder.typicode.com/posts/"
-  :on-preview="handlePreview"
-  :on-remove="handleRemove"
-  :before-remove="beforeRemove"
-  multiple
-  :limit="3"
-  :on-exceed="handleExceed"
-  :file-list="fileList">
-  <el-button size="small" type="primary">上传音频</el-button>
-  <div slot="tip" class="el-upload__tip">
-格式支持mp3、m4a，为保证音频加载与播放的流畅性，建议上传大小不超过500M</div>
-</el-upload>
-
-</el-form-item>
-
-
-<!-- 计数器 -->
-<el-form-item  label="课程价格"style="margin-left:76px" >
-  <el-input-number v-model="temp.price" @change="handleChange" :min="1" :max="10" label="描述文字"></el-input-number>
-</el-form-item>
-
-<!-- 状态 -->
-<el-form-item  label="状态"style="margin-left:76px" >
-  <el-radio-group v-model="temp.status">
-<el-radio :label="0" >下架</el-radio>
-  <el-radio :label="1">上架</el-radio>
-   </el-radio-group>
-  </el-form-item>
-  </el-form>
-
-  <template slot="footer" class="dialog-footer"></template>
-    <el-button @click="dialogFormVisible = false">取 消</el-button>
-    <el-button type="primary"  @click="dialogStatus==='create'?createData():updateData()">提交</el-button>
-</el-dialog>
+   <choose-course ref="chooseCourse"></choose-course>
+    
        
     </div>
     </div>
 </template>
 
 <script>
+let id=0
+import waves from '@/directive/waves' 
 import {
-  fetchList,
+  fetchDetail,
+  fetchDetailCourse,
   deleteMedia,
   createMedia,
   updateMedia,
-} from "../../../api/media";
+} from "../../../api/column";
 import Tinymce from "@/components/Tinymce";
+import chooseCourse from '@/components/chooseCourse/index.vue'
+
 let defaultListQuery = {
+  status: undefined,
+  title: undefined,
   page: 1, // 当前是第几页
   limit: 10, // 每页5条数据
-  title: undefined,
 };
 
 const statusOptions = {
@@ -198,10 +163,40 @@ const statusOptions = {
   1: "已上架",
 };
 export default {
-  components: { Tinymce },
+  components: { Tinymce ,chooseCourse},
+//   beforeRouteEnter(to, from, next) {
+//             id = to.query.id
+//             next()
+//         },
+//把状态上架下架过滤出来
+  directives: {
+            waves
+        },
+    
+   beforeRouteEnter(to, from, next) {
+       console.log(to.query.id)
+            id = to.query.id
+            next()
+        },
+  filters: {
+    statusFilter(status) {
+      return statusOptions[status];
+    },
+  },
   data() {
     return {
-        fileList: [{name: 'food.mp3', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}, {name: 'food2.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}],
+      fileList: [
+        {
+          name: "food.mp3",
+          url:
+            "https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100",
+        },
+        {
+          name: "food2.jpeg",
+          url:
+            "https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100",
+        },
+      ],
       dialogStatus: "",
       temp: {
         id: undefined,
@@ -275,6 +270,23 @@ export default {
       },
       dialogImageUrl: "",
       dialogVisible: false,
+      detial:{
+
+      },
+     
+     detail: {
+                    content: "",
+                    cover: "",
+                    created_time: "",
+                    id: 0,
+                    isend: 0,
+                    price: 0,
+                    status: 1,
+                    sub_count: 0,
+                    title: "",
+                    try: "",
+                    updated_time: ""
+                },
 
       dialogTableVisible: false,
       dialogFormVisible: false,
@@ -302,14 +314,12 @@ export default {
       },
       num: 1,
       radio: "1",
+      shangxiajia:true,
+      wanjie:true
     };
   },
-  //把状态上架下架过滤出来
-  filters: {
-    statusFilter(status) {
-      return statusOptions[status];
-    },
-  },
+  
+  
   methods: {
     // onSubmit() {
     //   console.log("submit!");
@@ -333,17 +343,26 @@ export default {
     async getlist() {
       // console.log(this.defaultListQuery)
       this.listLoading = true;
-      
-      let result = await fetchList(this.listQuery);
+
+      let result = await fetchDetailCourse(this.listQuery);
       console.log(this.listQuery);
       console.log(result);
       if (result.code === 20000) {
         this.tableData = result.data.items;
         this.total = result.data.total;
-         this.list = result.data.items
+        this.list = result.data.items;
         // console.log(this.total)
         this.listLoading = false;
       }
+    },
+    //获取每个专栏对应的数据
+getdata(){
+     console.log(this.id)
+   fetchDetail({id}).then(res=>{
+            this.detail=res.data
+     })
+        //  console.log("........................................")
+        //  console.log( "..",result)
     },
 
     //控制产品上架下架
@@ -462,35 +481,24 @@ export default {
     handleUploadRemove(file, fileList) {
       console.log(file, fileList);
     },
-    //上传图片
-    handleRemove(file, fileList) {
-      console.log(file, fileList);
-    },
-    handlePictureCardPreview(file) {
-      this.dialogImageUrl = file.url;
-      this.dialogVisible = true;
-    },
-    //上传视频
-    handleRemove(file, fileList) {
-        console.log(file, fileList);
-      },
-      handlePreview(file) {
-        console.log(file);
-      },
-      handleExceed(files, fileList) {
-        this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
-      },
-      beforeRemove(file, fileList) {
-        return this.$confirm(`确定移除 ${ file.name }？`);
-      },
-
-    //计数器
-    handleChange(value) {
-      console.log(value);
-    },
+   //新增目录
+   addCourse(){
+                this.$refs.chooseCourse.open((val)=>{
+                    this.list = [...this.list,...val]
+                },50)
+                // this.$refs.chooseCourse.open()
+            },
+    //改变那两个按钮
+    changeDetailStatus(){
+                this.detail.status = this.detail.status ? 0 : 1
+            },
+            changeDetailIsend(){
+                this.detail.isend = this.detail.isend ? 0 : 1
+            },
   },
   created() {
     this.getlist();
+    this.getdata()
   },
 };
 </script>
